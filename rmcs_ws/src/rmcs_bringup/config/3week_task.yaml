@@ -1,0 +1,77 @@
+rmcs_executor:
+  ros__parameters:
+    update_rate: 1000.0
+    components:
+      - rmcs_core::hardware::RemoteControlMotor -> gm6020_test_hardware
+      - rmcs_core::controller::test::Gm6020TestController -> gm6020_test_controller
+      - rmcs_core::broadcaster::ValueBroadcaster -> value_broadcaster
+
+value_broadcaster:
+  ros__parameters:
+    forward_list:
+      # Remote input after safety gating.
+      - /test_motor/remote_input
+
+      # Processed motor feedback used by the controller.
+      - /test_motor/angle
+      - /test_motor/velocity
+      - /test_motor/torque
+
+      # Controller targets and PID output.
+      - /test_motor/control_angle
+      - /test_motor/control_velocity
+      - /test_motor/raw/control_torque
+
+      # Raw feedback for comparing the velocity filter during tuning.
+      - /test_motor/raw/angle
+      - /test_motor/raw/velocity
+      - /test_motor/raw/torque
+
+gm6020_test_controller:
+  ros__parameters:
+    mode: angle
+    remote_input: /test_motor/remote_input
+    enabled: /test_motor/enabled
+    angle: /test_motor/angle
+    velocity: /test_motor/velocity
+    control_angle: /test_motor/control_angle
+    control_velocity: /test_motor/control_velocity
+    control_torque: /test_motor/raw/control_torque
+
+    # Velocity mode uses this as the stick's full-scale speed.
+    max_velocity: 2.0
+    max_velocity_target_rate: 50.0 # rad/s^2
+    max_torque_rate: 0.5 # N*m/s
+    deadband: 0.05
+
+    # Velocity inner loop: velocity error (rad/s) -> torque command (N*m).
+    # Ki and Kd use continuous-time units because the controller supplies dt to the PID.
+    velocity_kp: 0.003
+    velocity_ki: 0.006
+    velocity_kd: 0.00002
+    # One bounded breakaway pulse per direction, then feedforward plus PID.
+    velocity_startup_torque: 0.08
+    velocity_startup_duration_s: 0.2 # 0 disables the startup pulse.
+    velocity_feedforward_torque: 0.04
+    velocity_integral_min: -7.0
+    velocity_integral_max: 7.0
+    velocity_anti_windup: true
+    velocity_output_min: -0.08
+    velocity_output_max: 0.08
+
+    # Angle outer loop: stick position -> target angle -> target velocity (rad/s).
+    # Center returns to the enable position; holding the stick holds the mapped angle.
+    angle_kp: 3.0
+    angle_ki: 0.0
+    angle_kd: 0.0
+    angle_output_min: -2.0
+    angle_output_max: 2.0
+
+gm6020_test_hardware:
+  ros__parameters:
+    board_serial: ""
+    motor_id: 1
+    encoder_zero_point: 0
+    motor_reversed: false
+    update_rate_hz: 1000.0
+    velocity_filter_cutoff_hz: 100.0

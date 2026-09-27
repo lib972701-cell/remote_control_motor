@@ -5,6 +5,7 @@
   <class type="rmcs_core::hardware::DeformableInfantryOmni" base_class_type="rmcs_executor::Component" />
   <class type="rmcs_core::hardware::DeformableInfantryOmniB" base_class_type="rmcs_executor::Component" />
   <class type="rmcs_core::hardware::Sentry" base_class_type="rmcs_executor::Component" />
+  <class type="rmcs_core::hardware::RemoteControlMotor" base_class_type="rmcs_executor::Component" />
   
   <class type="rmcs_core::hardware::Px4VisionBridge" base_class_type="rmcs_executor::Component" />
 
@@ -44,6 +45,8 @@
   <class type="rmcs_core::controller::pid::FrictionWheelPidRecorder" base_class_type="rmcs_executor::Component" />
 
   <class type="rmcs_core::controller::adrc::AdrcController" base_class_type="rmcs_executor::Component" />
+
+  <class type="rmcs_core::controller::test::Gm6020TestController" base_class_type="rmcs_executor::Component" />
 
   <class type="rmcs_core::broadcaster::TfBroadcaster" base_class_type="rmcs_executor::Component" />
   <class type="rmcs_core::broadcaster::ValueBroadcaster" base_class_type="rmcs_executor::Component" />

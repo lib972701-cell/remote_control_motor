@@ -79,3 +79,11 @@ develop_ws
 .codex/
 .mimo/
 CLAUDE.md
+AGENTS.md
+
+# Crash dumps
+core
+core.*
+# Crash dumps
+core
+core.*

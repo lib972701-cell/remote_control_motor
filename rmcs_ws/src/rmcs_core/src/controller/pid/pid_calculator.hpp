@@ -29,21 +29,30 @@ public:
         err_integral_ = 0;
     }
 
-    double update(double err) {
-        if (!std::isfinite(err)) {
+    double update(double err) { return update(err, 1.0); }
+
+    double update(double err, double dt) {
+        if (!std::isfinite(err) || !std::isfinite(dt) || dt <= 0.0) {
             return nan;
         } else {
             double control = kp * err;
 
-            if (err < integral_split_max && err > integral_split_min) {
+            const bool integrate = err < integral_split_max && err > integral_split_min;
+            if (integrate) {
                 control += ki * err_integral_;
-                err_integral_ = std::clamp(err_integral_ + err, integral_min, integral_max);
             } else
                 err_integral_ = 0;
 
             if (!std::isnan(last_err_))
-                control += kd * (err - last_err_);
+                control += kd * (err - last_err_) / dt;
             last_err_ = err;
+
+            if (integrate
+                && (!anti_windup
+                    || !(
+                        (control >= output_max && ki * err > 0.0)
+                        || (control <= output_min && ki * err < 0.0))))
+                err_integral_ = std::clamp(err_integral_ + err * dt, integral_min, integral_max);
 
             return std::clamp(control, output_min, output_max);
         }
@@ -53,6 +62,7 @@ public:
     double integral_min = -inf, integral_max = inf;
     double integral_split_min = -inf, integral_split_max = inf;
     double output_min = -inf, output_max = inf;
+    bool anti_windup = false;
 
 private:
     static constexpr double inf = std::numeric_limits<double>::infinity();
@@ -86,6 +96,7 @@ inline auto make_pid_calculator(
     node.get_parameter(prefix + "integral_split_max", calculator.integral_split_max);
     node.get_parameter(prefix + "output_min", calculator.output_min);
     node.get_parameter(prefix + "output_max", calculator.output_max);
+    node.get_parameter(prefix + "anti_windup", calculator.anti_windup);
     return calculator;
 }
 
